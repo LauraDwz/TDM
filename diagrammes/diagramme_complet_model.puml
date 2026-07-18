@@ -1,0 +1,208 @@
+@startuml diagramme_complet_1_model
+title TDM - Couche Model
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+' --- ENUMS ---
+
+enum GameStatus {
+    PLAYING
+    MENU
+    INFO
+    GAME_OVER
+    VICTORY
+}
+
+enum GameSpeed {
+    SLOW
+    NORMAL
+    FAST
+    --
+    + get_speed() : float
+    + change() : GameSpeed
+    + triangle_count() : int
+}
+
+enum CellType {
+    GRASS
+    PATH
+    TOWER
+}
+
+' --- MODEL ---
+
+class GameState {
+    + gold : int
+    + lives : int
+    + wave : int
+    + score : int
+    + unit_cost : int
+    + moves_remaining : int
+    + elapsed_time : float
+    + status : GameStatus
+    + speed : GameSpeed
+    + boosters : Booster[4]
+    --
+    + game_over : bool
+    + victory : bool
+    + menu : bool
+    + playing : bool
+    + info : bool
+    --
+    + get_booster(indice) : Booster
+    + spend_gold(amount) : bool
+    + add_gold(amount)
+    + increment_unit_cost()
+    + lose_life(amount)
+    + add_score(amount)
+    + use_move() : bool
+    + next_wave()
+    + change_speed()
+    + toggle_menu()
+    + toggle_info()
+    + set_victory()
+}
+
+class Grid {
+    + rows : int
+    + cols : int
+    + cells : Cell[][]
+    --
+    + get_cell(row, col) : Cell
+    + get_cell_at_pixel(x, y) : Cell
+    + get_placeable_cells() : Cell[]
+    + get_path_cells() : Cell[]
+}
+
+class Cell {
+    + row : int
+    + col : int
+    + cell_type : CellType
+    + unit : Unit
+    --
+    + unit_placeable : bool
+    + pixel_x : int
+    + pixel_y : int
+}
+
+abstract class Unit <<ABC>> {
+    + level : int
+    + damage : int
+    + range : float
+    + attack_speed : float
+    + name : str
+    + projectile_color : tuple
+    - _attack_cooldown : float
+    --
+    + level_up()
+    + update(dt, targets, spawn_x, spawn_y) : Projectile[]
+}
+
+class Archer {
+    ' damage=5, range=3.0, attack_speed=1.5
+}
+
+class Mage {
+    ' damage=15, range=2.0, attack_speed=0.6
+}
+
+abstract class Monster <<ABC>> {
+    + hp : int
+    + max_hp : int
+    + speed : float
+    + reward : int
+    + progress : float
+    + alive : bool
+    + path_index : int
+    + name : str
+    --
+    + hp_ratio : float
+    --
+    + take_damage(amount)
+    + move(dt)
+}
+
+class Goblin {
+    ' hp=60, speed=2.5, reward=10
+}
+
+class Orc {
+    ' hp=200, speed=1.0, reward=25
+}
+
+abstract class Booster {
+    + used : bool
+    + active : bool
+    + label : str
+    + description : str
+    + color : tuple
+    --
+    + available : bool
+    --
+    + activate()
+    + desactivate()
+}
+
+class BoosterGold {
+    + activate()
+}
+
+class BoosterAttack
+class BoosterRange
+class BoosterSpeed
+
+class Projectile {
+    + x : float
+    + y : float
+    + damage : int
+    + color : tuple
+    + active : bool
+    + target : Monster
+    --
+    + update(dt, path)
+    - _hit()
+}
+
+class Wave {
+    - _queue : deque
+    + active : Monster[]
+    + spawn_interval : float
+    - _spawn_timer : float
+    --
+    + is_finished : bool
+    --
+    + update(dt)
+    + remove_dead()
+}
+
+class MergeManager {
+    + can_merge(unit1, unit2) : bool
+    + merge(unit1, unit2) : Unit
+}
+
+' --- Heritages ---
+
+Unit <|-- Archer
+Unit <|-- Mage
+Monster <|-- Goblin
+Monster <|-- Orc
+Booster <|-- BoosterGold
+Booster <|-- BoosterAttack
+Booster <|-- BoosterRange
+Booster <|-- BoosterSpeed
+
+' --- Relations ---
+
+Grid "1" *-- "n" Cell : contient
+Cell "0..1" o-- "0..1" Unit : heberge
+Cell --> CellType
+GameState "1" *-- "4" Booster : possede
+GameState --> GameStatus
+GameState --> GameSpeed
+Wave "1" o-- "0..*" Monster : gere
+Projectile "n" --> "1" Monster : cible
+Unit ..> Projectile : cree
+
+@enduml

@@ -1,0 +1,54 @@
+{
+  "1": [
+    {
+      "score": 2470,
+      "time": 67.6,
+      "lives_remaining": 10
+    },
+    {
+      "score": 1555,
+      "time": 86.8,
+      "lives_remaining": 8
+    },
+    {
+      "score": 1530,
+      "time": 98.6,
+      "lives_remaining": 10
+    }
+  ],
+  "2": [
+    {
+      "score": 1545,
+      "time": 128.2,
+      "lives_remaining": 10
+    }
+  ],
+  "3": [
+    {
+      "score": 3195,
+      "time": 107.5,
+      "lives_remaining": 10
+    }
+  ],
+  "4": [
+    {
+      "score": 3125,
+      "time": 120.5,
+      "lives_remaining": 2
+    }
+  ],
+  "5": [
+    {
+      "score": 3025,
+      "time": 143.6,
+      "lives_remaining": 10
+    }
+  ],
+  "16": [
+    {
+      "score": 18845,
+      "time": 238.7,
+      "lives_remaining": 2
+    }
+  ]
+}

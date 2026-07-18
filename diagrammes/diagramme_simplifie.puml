@@ -1,0 +1,225 @@
+@startuml diagramme_simplifie
+title Tower Merge Defense - Diagramme de classes simplifie
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+' ─── ENUMS ──────────────────────────────────────────────
+enum AppStatus {
+    MAP
+    PLAYING
+}
+
+enum GameStatus {
+    PLAYING
+    MENU
+    INFO
+    GAME_OVER
+    VICTORY
+}
+
+enum GameSpeed {
+    SLOW
+    NORMAL
+    FAST
+}
+
+enum CellType {
+    GRASS
+    PATH
+    TOWER
+}
+
+' ─── MODEL ──────────────────────────────────────────────
+package model {
+
+    class GameState {
+        gold, lives, wave, score
+        unit_cost, moves_remaining
+        elapsed_time
+        boosters : Booster[]
+        status : GameStatus
+        speed : GameSpeed
+    }
+
+    class Grid {
+        rows, cols
+        cells : Cell[][]
+    }
+
+    class Cell {
+        row, col
+        cell_type : CellType
+        unit : Unit
+    }
+
+    abstract class Unit {
+        level, damage, range
+        attack_speed, name
+        + level_up()
+        + update()
+    }
+
+    abstract class Monster {
+        hp, max_hp, speed
+        reward, progress, alive
+        + take_damage()
+        + move()
+    }
+
+    class Wave {
+        spawn_interval
+        active : Monster[]
+        + update()
+        + is_finished : bool
+    }
+
+    abstract class Booster {
+        label, description
+        used, active
+        + activate()
+        + desactivate()
+    }
+
+    class Projectile {
+        x, y, damage
+        active
+        target : Monster
+        + update()
+    }
+
+    class MergeManager {
+        + can_merge()
+        + merge()
+    }
+
+    class Archer
+    class Mage
+    Unit <|-- Archer
+    Unit <|-- Mage
+
+    class Goblin
+    class Orc
+    Monster <|-- Goblin
+    Monster <|-- Orc
+
+    class BoosterGold
+    class BoosterAttack
+    class BoosterRange
+    class BoosterSpeed
+    Booster <|-- BoosterGold
+    Booster <|-- BoosterAttack
+    Booster <|-- BoosterRange
+    Booster <|-- BoosterSpeed
+
+    Grid "1" *-- "n" Cell
+    Cell "0..1" o-- "0..1" Unit
+    GameState "1" *-- "4" Booster
+    GameState --> GameStatus
+    GameState --> GameSpeed
+    Cell --> CellType
+    Wave "1" o-- "n" Monster
+    Projectile --> Monster : cible
+}
+
+' ─── CONTROLLER ─────────────────────────────────────────
+package controller {
+
+    class GameController {
+        selected_cell, hovered_cell
+        selected_unit_type
+        projectiles : Projectile[]
+        + handle_event()
+        + update()
+    }
+
+    class WaveController {
+        paths, wave_definitions
+        current_wave : Wave
+        + start_next_wave()
+        + update()
+    }
+
+    class PathFinder {
+        + calculate_paths()
+    }
+
+    class SoundManager {
+        music_enabled, sfx_enabled
+        + play_map_music()
+        + play_game_music()
+        + toggle_music()
+    }
+
+    GameController --> GameState
+    GameController --> Grid
+    GameController --> WaveController
+    GameController --> MergeManager
+    GameController --> SoundManager
+    WaveController --> GameState
+    WaveController --> Wave
+}
+
+' ─── VIEW ───────────────────────────────────────────────
+package view {
+
+    class GridView {
+        + draw()
+    }
+
+    class UnitView {
+        + draw()
+    }
+
+    class HudView {
+        + draw()
+    }
+
+    class MenuView {
+        + draw()
+        + handle_click()
+    }
+
+    class MapView {
+        + draw()
+        + handle_click()
+    }
+
+    class EndScreenView {
+        + draw_victory()
+        + draw_defeat()
+    }
+
+    class WaveInfoView {
+        + draw()
+    }
+
+    class ScoreboardView {
+        + draw()
+    }
+}
+
+' ─── GAME (orchestrateur) ───────────────────────────────
+class Game {
+    app_status : AppStatus
+    + run()
+}
+
+Game --> AppStatus
+Game --> GameState
+Game --> Grid
+Game --> GameController
+Game --> WaveController
+Game --> PathFinder
+Game --> GridView
+Game --> UnitView
+Game --> HudView
+Game --> MenuView
+Game --> MapView
+Game --> EndScreenView
+Game --> WaveInfoView
+Game --> ScoreboardView
+Game --> SoundManager
+
+@enduml

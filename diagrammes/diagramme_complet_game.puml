@@ -1,0 +1,107 @@
+@startuml diagramme_complet_3_game
+title TDM - Orchestrateur Game
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+' --- DATA ---
+
+package data {
+
+    class level_loader <<module>> {
+        + load_levels() : dict[]
+        + get_level(index) : dict
+    }
+
+    class scoreboard <<module>> {
+        + add_score(level_index, score, time, lives)
+        + get_scores(level_index) : dict[]
+        + get_all_scores() : dict
+    }
+}
+
+' --- Enums ---
+
+enum AppStatus {
+    MAP
+    PLAYING
+}
+
+' --- References aux autres couches ---
+
+class GameState
+class Grid
+class GameController
+class WaveController
+class PathFinder
+class SoundManager
+
+package view {
+    class GridView
+    class UnitView
+    class HudView
+    class MenuView
+    class MapView
+    class EndScreenView
+    class WaveInfoView
+    class ScoreboardView
+}
+
+' --- GAME ---
+
+class Game {
+    + screen
+    + clock
+    + running : bool
+    + app_status : AppStatus
+    - _current_level_index : int
+    - _total_levels : int
+    - _show_wave_info : bool
+    - _show_scoreboard : bool
+    --
+    + game_state : GameState
+    + grid : Grid
+    + wave_controller : WaveController
+    + game_controller : GameController
+    + grid_view : GridView
+    + unit_view : UnitView
+    + hud_view : HudView
+    + map_view : MapView
+    + menu_view : MenuView
+    + end_screen_view : EndScreenView
+    + wave_info_view : WaveInfoView
+    + scoreboard_view : ScoreboardView
+    + sound_manager : SoundManager
+    --
+    + run()
+    - _load_level(level_index)
+    - _return_to_map()
+    - _handle_events()
+    - _handle_map_events(event)
+    - _handle_game_events(event)
+    - _update(dt)
+    - _draw()
+    - _draw_game()
+    + _has_next_level : bool
+}
+
+Game --> AppStatus
+Game --> GameState
+Game --> Grid
+Game --> GameController
+Game --> WaveController
+Game --> PathFinder
+Game --> SoundManager
+Game --> GridView
+Game --> UnitView
+Game --> HudView
+Game --> MenuView
+Game --> MapView
+Game --> EndScreenView
+Game --> WaveInfoView
+Game --> ScoreboardView
+Game ..> level_loader : utilise
+Game ..> scoreboard : utilise
+
+@enduml

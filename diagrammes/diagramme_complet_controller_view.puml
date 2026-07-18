@@ -1,0 +1,196 @@
+@startuml diagramme_complet_2_controller_view
+title TDM - Couches Controller et View
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+' --- CONTROLLER ---
+
+package controller {
+
+    class GameController {
+        + game_state : GameState
+        + grid : Grid
+        + wave_controller : WaveController
+        + merge_manager : MergeManager
+        + hud_view : HudView
+        + sound_manager : SoundManager
+        + selected_cell : Cell
+        + hovered_cell : Cell
+        + selected_unit_type : type
+        + projectiles : Projectile[]
+        --
+        + handle_event(event)
+        + update(dt)
+        - _handle_left_click(pos)
+        - _handle_right_click(pos)
+        - _handle_keydown(key)
+        - _handle_hud_click(x, y)
+        - _activate_booster(indice)
+        - _desactivate_booster(booster)
+        - _try_place_unit(cell)
+        - _try_merge(cell1, cell2)
+        - _try_move(source, target)
+        - _get_targets_in_range(cell) : Monster[]
+    }
+
+    class WaveController {
+        + game_state : GameState
+        + paths : Cell[][]
+        - _wave_definitions : dict[]
+        + sound_manager : SoundManager
+        + current_wave : Wave
+        - _wave_index : int
+        - _between_waves : bool
+        - _auto_timer : float
+        --
+        + is_between_waves : bool
+        + has_more_waves : bool
+        + auto_timer : float
+        --
+        + start_next_wave()
+        + update(dt)
+        + get_active_monsters() : Monster[]
+        - _build_monsters(definition) : Monster[]
+        - _move_monsters(dt)
+        - _check_reached_end()
+    }
+
+    class PathFinder {
+        + calculate_path(grid, start, end) : Cell[]
+        + calculate_paths(grid, starts, ends) : Cell[][]
+        - _get_neighbors(grid, cell) : Cell[]
+        - _reconstruct(visited, end) : Cell[]
+    }
+
+    class SoundManager {
+        + music_enabled : bool
+        + sfx_enabled : bool
+        - _sounds : dict
+        - _current_music : str
+        --
+        + play_map_music()
+        + play_game_music()
+        + toggle_music()
+        + toggle_sfx()
+        + play(key)
+        + play_place_unit()
+        + play_monster_spawn()
+    }
+
+    ' Relations internes au controller
+    GameController --> WaveController : pilote
+    GameController --> SoundManager
+    WaveController --> SoundManager
+}
+
+' --- VIEW ---
+
+package view {
+
+    class GridView {
+        - _grass_surface
+        - _path_surface
+        - _tarmac_surface
+        - _portal_surface
+        --
+        + draw(screen, grid, hovered, selected, starts, ends)
+        - _draw_cell(screen, cell, ...)
+        - _draw_grid_lines(screen, grid)
+        - _prerender(size)
+    }
+
+    class UnitView {
+        + draw(screen, grid, monsters, paths, projectiles)
+        - _draw_units(screen, grid)
+        - _draw_monsters(screen, monsters, paths)
+        - _draw_projectiles(screen, projectiles)
+        - _draw_goblin(screen, cx, cy)
+        - _draw_orc(screen, cx, cy)
+        - _draw_health_bar(screen, monster, ...)
+    }
+
+    class HudView {
+        + wave_button_rect
+        + pause_button_rect
+        + info_button_rect
+        + archer_button_rect
+        + mage_button_rect
+        + speed_button_rect
+        + booster_rects
+        --
+        + draw(screen, game_state, ...)
+        + get_unit_button_clicked(pos) : type
+        + get_booster_clicked(pos) : int
+        + get_speed_button_clicked(pos) : bool
+        + is_info_button_clicked(pos) : bool
+    }
+
+    class MenuView {
+        + resume_rect
+        + restart_rect
+        + rules_rect
+        + map_rect
+        + quit_rect
+        + music_btn_rect
+        + sfx_btn_rect
+        - _show_rules : bool
+        --
+        + draw(screen, sound_manager)
+        + handle_click(pos) : str
+        + reset()
+        + toggle_rules()
+    }
+
+    class MapView {
+        - _hovered_level : int
+        - _show_rules : bool
+        + rules_button_rect
+        + scores_button_rect
+        --
+        + draw(screen)
+        + handle_click(pos) : int
+        + handle_mouse_motion(pos)
+    }
+
+    class EndScreenView {
+        + next_level_rect
+        + scores_rect
+        + restart_rect
+        --
+        + draw_victory(screen, game_state, has_next_level)
+        + draw_defeat(screen)
+        + handle_click_victory(pos, has_next_level) : str
+        + handle_click_defeat(pos) : str
+    }
+
+    class WaveInfoView {
+        + panel_rect
+        + close_rect
+        --
+        + draw(screen, wave_definitions, wave_index)
+        + handle_click(pos) : bool
+    }
+
+    class ScoreboardView {
+        + panel_rect
+        + close_rect
+        - _page : int
+        - _levels_per_page : int
+        --
+        + draw(screen, total_levels, level_index)
+        + handle_click(pos, total_levels, level_index) : bool
+        + reset()
+    }
+
+    ' MenuView utilise SoundManager pour afficher l'etat musique/sfx
+    MenuView --> SoundManager : affiche etat
+}
+
+' --- Relations Controller -> View ---
+
+GameController --> HudView : interroge les clics
+GameController ..> WaveController : lit is_between_waves\net auto_timer pour HUD
+
+@enduml
